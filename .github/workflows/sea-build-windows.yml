@@ -45,7 +45,7 @@ jobs:
         echo "x64_bin=$(pwd)/${{ env.X64_NAME }}" >> $env:GITHUB_OUTPUT
 
         echo.exe Downloading Node arm64
-        curl.exe https://nodejs.org/dist/v$VERSION/node-v$VERSION-win-arm64.zip -o node-x64.zip
+        curl.exe https://nodejs.org/dist/v$VERSION/node-v$VERSION-win-arm64.zip -o node-arm64.zip
         7z x node-arm64.zip
         cp node-v$VERSION-win-arm64/node.exe ${{ env.ARM64_NAME }}
         signtool remove /s ${{ env.ARM64_NAME }}
