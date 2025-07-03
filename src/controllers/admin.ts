@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { handleAdmin } from "./handles";
-import { currentRuntimeConfig, loadConfig, loadRuntimeConfig } from "@/config";
+import { Router } from 'express';
+import { handleAdmin } from './handles';
+import { currentRuntimeConfig, loadConfig, loadRuntimeConfig } from '@/config';
 
 export const adminController = Router();
 

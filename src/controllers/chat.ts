@@ -1,7 +1,6 @@
-import { Router } from "express";
-import { handleAuth, handleModel } from "./handles";
-import { pipeFetch } from "@/forward";
-
+import { Router } from 'express';
+import { handleAuth, handleModel } from './handles';
+import { pipeFetch } from '@/forward';
 
 export const chatController = Router();
 
