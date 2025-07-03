@@ -22,7 +22,8 @@ export interface UpstreamDefintion {
 export interface ModelDefinition {
   name: string,
   rate?: number,
-  rename?: string
+  rename?: string,
+  apiKey?: string,
 }
 
 export async function loadConfig(): Promise<Config> {

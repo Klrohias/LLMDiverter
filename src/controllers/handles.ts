@@ -1,5 +1,5 @@
-import { currentRuntimeConfig, Model, Provider } from '@/config';
-import { chooseProvider, isKeyAccepted } from '@/forward';
+import { currentRuntimeConfig } from '@/config';
+import { chooseProvider, isKeyAccepted, ModelChosen } from '@/forward';
 import { type Request, type Response } from 'express';
 
 /** the value returned controls the authed request should continue executing */
@@ -21,7 +21,7 @@ export async function handleAuth(req: Request, res: Response) {
 }
 
 /** the value returned controls the request about model should continue executing */
-export async function handleModel(req: Request, res: Response): Promise<[Provider, Model]> {
+export async function handleModel(req: Request, res: Response): Promise<ModelChosen> {
   const modelName = req.body['model'];
   if (!modelName) {
     res.status(400).send({ error: `Field "model" is required` });
@@ -33,17 +33,17 @@ export async function handleModel(req: Request, res: Response): Promise<[Provide
     // provider specified
     const models = currentRuntimeConfig.models[modelName];
     if (!models) {
-      res.status(400).send({ error: `Cannot the model, check your config` });
+      res.status(400).send({ error: `Cannot find the model, check your config` });
       return null;
     }
 
     const model = models.find(x => x.provider == specifiedProvider);
     if (!model) {
-      res.status(400).send({ error: `Cannot the model, check your config` });
+      res.status(400).send({ error: `Cannot find the model, check your config` });
       return null;
     }
 
-    return [currentRuntimeConfig.providers[specifiedProvider], model];
+    return { provider: currentRuntimeConfig.providers[specifiedProvider], model };
   } else {
     // choose a provider randomly
     const tuple = chooseProvider(currentRuntimeConfig, modelName);

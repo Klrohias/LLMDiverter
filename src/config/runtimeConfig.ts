@@ -17,7 +17,8 @@ export interface Provider {
 export interface Model {
   rate?: number,
   provider: string,
-  rename?: string
+  rename?: string,
+  apiKey?: string
 }
 
 export let currentRuntimeConfig = defaultRuntimeConfig();
@@ -57,7 +58,8 @@ export function loadRuntimeConfig(config: Config): RuntimeConfig {
         getOrCreateModelList(newRuntimeConfig, modelDef.name).push({
           provider: providerName,
           rate: modelDef.rate,
-          rename: modelDef.rename
+          rename: modelDef.rename,
+          apiKey: modelDef.apiKey
         });
       }
     }

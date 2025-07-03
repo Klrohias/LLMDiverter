@@ -36,7 +36,12 @@ function getIndex(distribution: number[], value: number): number {
   return 0;
 }
 
-export function chooseProvider(runtimeConfig: RuntimeConfig, modelName?: string): [Provider, Model] | null {
+export interface ModelChosen {
+  provider: Provider,
+  model: Model,
+}
+
+export function chooseProvider(runtimeConfig: RuntimeConfig, modelName?: string): ModelChosen | null {
   if (modelName === undefined) return null;
 
   const modelList = runtimeConfig.models[modelName];
@@ -51,5 +56,5 @@ export function chooseProvider(runtimeConfig: RuntimeConfig, modelName?: string)
   const index = getIndex(modelDistribution, Math.random());
   const model = modelList[index]
 
-  return [runtimeConfig.providers[model.provider], model];
+  return { provider: runtimeConfig.providers[model.provider], model };
 }

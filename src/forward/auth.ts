@@ -8,3 +8,4 @@ export async function isKeyAccepted(apiKey: string) {
 
   return currentRuntimeConfig.acceptedKeys.includes(apiKey);
 }
+
