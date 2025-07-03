@@ -1,0 +1,76 @@
+name: SEA Build Windows
+
+on: 
+  workflow_dispatch: {}
+  workflow_call: {}
+
+env:
+  X64_NAME: llm-diverter-win-x64.exe
+  ARM64_NAME: llm-diverter-win-arm64.exe
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .node-version
+        cache: npm
+
+    - name: Build
+      if: '!cancelled()'
+      run: |
+        corepack enable pnpm
+        pnpm i
+        pnpm build
+
+    - name: Download Node
+      id: download-node
+      if: '!cancelled()'
+      run: |
+        $VERSION=$(cat ./.node-version)
+
+        pushd dist
+        echo Downloading Node x64
+        curl.exe https://nodejs.org/dist/v$VERSION/node-v$VERSION-win-x64.zip -o node-x64.zip
+        7z x node-x64.zip
+        cp node-v$VERSION-win-x64/node.exe ${{ env.X64_NAME }}
+        signtool remove /s ${{ env.X64_NAME }}
+        echo "x64_bin=$(pwd)/${{ env.X64_NAME }}" >> $env:GITHUB_OUTPUT
+
+        echo.exe Downloading Node arm64
+        curl.exe https://nodejs.org/dist/v$VERSION/node-v$VERSION-win-arm64.zip -o node-x64.zip
+        7z x node-arm64.zip
+        cp node-v$VERSION-win-arm64/node.exe ${{ env.ARM64_NAME }}
+        signtool remove /s ${{ env.ARM64_NAME }}
+        echo "arm64_bin=$(pwd)/${{ env.ARM64_NAME }}" >> $env:GITHUB_OUTPUT
+        popd
+
+    - name: Sea Build Blob
+      id: build-blob
+      if: '!cancelled()'
+      run: |
+        node --experimental-sea-config sea-config.json
+        echo "bundle_output=$(pwd)/dist/bundle.blob" >> $GITHUB_OUTPUT
+
+    - name: Sea Build Binary
+      if: '!cancelled()'
+      run: |
+        pnpm postject ${{ steps.download-node.outputs.x64_bin }} NODE_SEA_BLOB ${{ steps.build-blob.outputs.bundle_output }} --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+        pnpm postject ${{ steps.download-node.outputs.arm64_bin }} NODE_SEA_BLOB ${{ steps.build-blob.outputs.bundle_output }} --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+        
+    - name: Upload Artifact (x64)
+      uses: actions/upload-artifact@v4
+      if: '!cancelled()'
+      with:
+        name: ${{ env.X64_NAME }}
+        path: ${{ steps.download-node.outputs.x64_bin }}
+
+    - name: Upload Artifact (arm64)
+      uses: actions/upload-artifact@v4
+      if: '!cancelled()'
+      with:
+        name: ${{ env.ARM64_NAME }}
+        path: ${{ steps.download-node.outputs.arm64_bin }}

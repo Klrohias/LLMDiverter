@@ -1,0 +1,74 @@
+name: SEA Build Linux
+
+on: 
+  workflow_dispatch: {}
+  workflow_call: {}
+
+env:
+  X64_NAME: llm-diverter-linux-x64
+  ARM64_NAME: llm-diverter-linux-arm64
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .node-version
+        cache: npm
+
+    - name: Build
+      if: '!cancelled()'
+      run: |
+        corepack enable pnpm
+        pnpm i
+        pnpm build
+
+    - name: Download Node
+      id: download-node
+      if: '!cancelled()'
+      run: |
+        export VERSION=$(cat ./.node-version)
+
+        pushd dist
+        echo Downloading Node x64
+        curl https://nodejs.org/dist/v$VERSION/node-v$VERSION-linux-x64.tar.xz -o node-x64.tar.xz
+        tar xf node-x64.tar.xz
+        cp node-v$VERSION-linux-x64/bin/node ${{ env.X64_NAME }}
+        echo "x64_bin=$(pwd)/${{ env.X64_NAME }}" >> $GITHUB_OUTPUT
+
+        echo Downloading Node arm64
+        curl https://nodejs.org/dist/v$VERSION/node-v$VERSION-linux-arm64.tar.xz -o node-arm64.tar.xz
+        tar xf node-arm64.tar.xz
+        cp node-v$VERSION-linux-arm64/bin/node ${{ env.ARM64_NAME }}
+        echo "arm64_bin=$(pwd)/${{ env.ARM64_NAME }}" >> $GITHUB_OUTPUT
+        popd
+
+    - name: Sea Build Blob
+      id: build-blob
+      if: '!cancelled()'
+      run: |
+        node --experimental-sea-config sea-config.json
+        echo "bundle_output=$(pwd)/dist/bundle.blob" >> $GITHUB_OUTPUT
+
+    - name: Sea Build Binary
+      if: '!cancelled()'
+      run: |
+        pnpm postject ${{ steps.download-node.outputs.x64_bin }} NODE_SEA_BLOB ${{ steps.build-blob.outputs.bundle_output }} --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+        pnpm postject ${{ steps.download-node.outputs.arm64_bin }} NODE_SEA_BLOB ${{ steps.build-blob.outputs.bundle_output }} --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+        
+    - name: Upload Artifact (x64)
+      uses: actions/upload-artifact@v4
+      if: '!cancelled()'
+      with:
+        name: ${{ env.X64_NAME }}
+        path: ${{ steps.download-node.outputs.x64_bin }}
+
+    - name: Upload Artifact (arm64)
+      uses: actions/upload-artifact@v4
+      if: '!cancelled()'
+      with:
+        name: ${{ env.ARM64_NAME }}
+        path: ${{ steps.download-node.outputs.arm64_bin }}

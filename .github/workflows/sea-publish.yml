@@ -1,0 +1,62 @@
+name: Sea Publish
+
+on: 
+  push:
+    tags: [ 'v*.*.*' ]
+
+env:
+  WINDOWS_X64_NAME: llm-diverter-win-x64.exe
+  WINDOWS_ARM64_NAME: llm-diverter-win-arm64.exe
+  LINUX_X64_NAME: llm-diverter-linux-x64
+  LINUX_ARM64_NAME: llm-diverter-linux-arm64
+
+jobs:
+  sea-windows:
+    uses: ./.github/workflows/sea-build-windows.yml
+
+  sea-linux:
+    uses: ./.github/workflows/sea-build-linux.yml
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: ['sea-windows', 'sea-linux']
+    if: '!cancelled()'
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: 'outputs/'
+
+      - name: Upload Windows x64
+        if: '!cancelled()'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "${{github.workspace}}/${{ env.WINDOWS_X64_NAME }}/${{ env.WINDOWS_X64_NAME }}"
+          asset_name: ${{ env.WINDOWS_X64_NAME }}
+
+      - name: Upload Windows arm64
+        if: '!cancelled()'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "${{github.workspace}}/${{ env.WINDOWS_ARM64_NAME }}/${{ env.WINDOWS_ARM64_NAME }}"
+          asset_name: ${{ env.WINDOWS_ARM64_NAME }}
+
+      - name: Upload Linux x64
+        if: '!cancelled()'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "${{github.workspace}}/${{ env.LINUX_X64_NAME }}/${{ env.LINUX_X64_NAME }}"
+          asset_name: ${{ env.LINUX_X64_NAME }}
+
+      - name: Upload Linux arm64
+        if: '!cancelled()'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "${{github.workspace}}/${{ env.LINUX_ARM64_NAME }}/${{ env.LINUX_ARM64_NAME }}"
+          asset_name: ${{ env.LINUX_ARM64_NAME }}
