@@ -1,4 +1,4 @@
-name: Sea Publish
+name: SEA Publish
 
 on: 
   push:
@@ -29,34 +29,61 @@ jobs:
         with:
           path: 'outputs/'
 
+      - name: Zip them all
+        id: zip-files
+        if: '!cancelled()'
+        run: |
+          pushd outputs
+            $FILENAME="${{ env.WINDOWS_X64_NAME }}"
+            pushd $FILENAME
+              zip -r $FILENAME.zip $FILENAME
+              echo "windows_x64_file=$(pwd)/$FILENAME.zip" >> $GITHUB_OUTPUT
+            popd
+            $FILENAME="${{ env.WINDOWS_ARM64_NAME }}"
+            pushd $FILENAME
+              zip -r $FILENAME.zip $FILENAME
+              echo "windows_arm64_file=$(pwd)/$FILENAME.zip" >> $GITHUB_OUTPUT
+            popd
+            $FILENAME="${{ env.LINUX_X64_NAME }}"
+            pushd $FILENAME
+              zip -r $FILENAME.zip $FILENAME
+              echo "linux_x64_file=$(pwd)/$FILENAME.zip" >> $GITHUB_OUTPUT
+            popd
+            $FILENAME="${{ env.LINUX_ARM64_NAME }}"
+            pushd $FILENAME
+              zip -r $FILENAME.zip $FILENAME
+              echo "linux_arm64_file=$(pwd)/$FILENAME.zip" >> $GITHUB_OUTPUT
+            popd
+          popd
+
       - name: Upload Windows x64
         if: '!cancelled()'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "${{github.workspace}}/${{ env.WINDOWS_X64_NAME }}/${{ env.WINDOWS_X64_NAME }}"
-          asset_name: ${{ env.WINDOWS_X64_NAME }}
+          file: ${{ steps.zip-files.outputs.windows_x64_file }}
+          asset_name: ${{ env.WINDOWS_X64_NAME }}.zip
 
       - name: Upload Windows arm64
         if: '!cancelled()'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "${{github.workspace}}/${{ env.WINDOWS_ARM64_NAME }}/${{ env.WINDOWS_ARM64_NAME }}"
-          asset_name: ${{ env.WINDOWS_ARM64_NAME }}
+          file: ${{ steps.zip-files.outputs.windows_arm64_file }}
+          asset_name: ${{ env.WINDOWS_ARM64_NAME }}.zip
 
       - name: Upload Linux x64
         if: '!cancelled()'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "${{github.workspace}}/${{ env.LINUX_X64_NAME }}/${{ env.LINUX_X64_NAME }}"
-          asset_name: ${{ env.LINUX_X64_NAME }}
+          file: ${{ steps.zip-files.outputs.linux_x64_file }}
+          asset_name: ${{ env.LINUX_X64_NAME }}.zip
 
       - name: Upload Linux arm64
         if: '!cancelled()'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "${{github.workspace}}/${{ env.LINUX_ARM64_NAME }}/${{ env.LINUX_ARM64_NAME }}"
-          asset_name: ${{ env.LINUX_ARM64_NAME }}
+          file: ${{ steps.zip-files.outputs.linux_arm64_file }}
+          asset_name: ${{ env.LINUX_ARM64_NAME }}.zip

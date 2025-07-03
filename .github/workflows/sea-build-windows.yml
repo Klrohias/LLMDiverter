@@ -17,7 +17,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version-file: .node-version
-        cache: npm
 
     - name: Build
       if: '!cancelled()'
@@ -25,6 +24,11 @@ jobs:
         corepack enable pnpm
         pnpm i
         pnpm build
+
+    - name: Prepare Signtool
+      if: '!cancelled()'
+      uses: KamaranL/add-signtool-action@v1
+      id: signtool
 
     - name: Download Node
       id: download-node
