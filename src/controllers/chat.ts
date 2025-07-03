@@ -19,7 +19,7 @@ chatController.post('/v1/chat/completions', async (req, res) => {
   }
 
   // forward request
-  pipeFetch(await fetch(`${provider.apiRoot}${req.path}`, {
+  pipeFetch(await fetch(`${provider.apiRoot}/chat/completions`, {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {

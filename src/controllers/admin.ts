@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { handleAdmin } from "./handles";
-import { loadConfig, loadRuntimeConfig } from "@/config";
+import { currentRuntimeConfig, loadConfig, loadRuntimeConfig } from "@/config";
 
 export const adminController = Router();
 
@@ -11,5 +11,11 @@ adminController.get('/reload.action', async (req, res) => {
   loadRuntimeConfig(config);
 
   res.send('Reloaded');
+});
+
+adminController.get('/runtime-config.action', async (req, res) => {
+  if (!await handleAdmin(req, res)) return;
+
+  res.send(currentRuntimeConfig);
 });
 
