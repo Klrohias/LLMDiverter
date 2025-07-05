@@ -20,7 +20,36 @@
 *   **`js-yaml`**: YAML 解析库
 *   **`esbuild`**: 用于快速打包和构建
 
-## ⚙️ 安装与运行
+## ⚙️ 安装与运行 (Docker)
+
+<details>
+
+<summary>使用 Docker 安装</summary>
+
+### Docker Compose 文档
+```yaml
+services:
+  llm-diverter:
+    container_name: llm-diverter
+    image: ghcr.io/klrohias/llmdiverter:latest
+    volumes:
+      - <配置文件路径>/config.yml:/config.yml
+    networks:
+      - services-network
+    ports:
+      - ...
+```
+
+### 配置
+参见 [♿ 配置](#-配置)
+
+</details>
+
+## ⚙️ 安装与运行 (手动构建)
+
+<details>
+
+<summary>手动下载构建</summary>
 
 ### 前提条件
 
@@ -40,6 +69,32 @@
     ```
 
 ### 配置
+参见 [♿ 配置](#-配置)
+
+### 构建
+
+在项目根目录运行：
+
+```bash
+pnpm build
+```
+
+检查 `dist` 目录内生成的 `bundle.js` 文件。
+
+### 运行
+
+在项目根目录运行：
+
+```bash
+node dist/bundle
+```
+
+服务默认会在 `config.yml` 中配置的 `listenPort` (默认为 `8081`) 启动。
+
+</details>
+
+
+## ♿ 配置
 
 编辑根目录下的 `config.yml` 文件以配置你的上游 LLM API 服务。一个示例配置如下：
 
@@ -80,15 +135,6 @@ upstreams:
         *   `rate` (可选): 该模型在此上游的倍率。**值越大，代表在这个上流调用该模型的开销更大，被选中的概率越低**。如果未指定，则默认为 1。
         *   `rename` (可选): 如果上游服务对该模型的名称有特殊要求，可以在此指定其真实名称。
 
-### 运行
-
-在项目根目录运行：
-
-```bash
-pnpm dev
-```
-
-服务默认会在 `config.yml` 中配置的 `listenPort` (默认为 `8081`) 启动。
 
 ## 💡 使用示例
 
